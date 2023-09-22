@@ -1,0 +1,53 @@
+import { createWriteStream } from "fs";
+import bcrypt from "bcrypt";
+import { protectedResolver } from "../users.utils";
+import { Resolvers } from "../../types";
+
+const resolverFn = async (_, { firstName, lastName, username, email, password: newPassword, bio, avatar }, { loggedInUser, client }) => {
+  console.log("로그인 유저" + loggedInUser, avatar);
+  const { filename, createReadStream } = await avatar;
+  console.log("로그인 유저" + loggedInUser, filename, createReadStream);
+  // 모든 파일을 stream에서 받기(스트림 읽기)
+  const readStream = createReadStream();
+
+  // uploads 파일에 저장하기(폴더에 스트림 쓰기)
+  // 파일에 고유한 이름 부여해주기 (같은 이름의 파일이 들어왔을 때 충돌 방지용)
+  const writeStream = createWriteStream(process.cwd + "/uploads/" + loggedInUser.id + Date.now() + filename);
+
+  // pipe 연결하기, 하나의 스트림을 다른 스트림으로 보내기
+  readStream.pipe(writeStream);
+
+  let updatedPassword = null;
+  if (newPassword) {
+    updatedPassword = await bcrypt.hash(newPassword, 13);
+  }
+  const updatedUser = await client.user.update({
+    where: { id: loggedInUser.id },
+    data: {
+      firstName,
+      lastName,
+      username,
+      email,
+      bio,
+      ...(updatedPassword && { password: updatedPassword }),
+    },
+  });
+  if (updatedUser.id) {
+    return {
+      ok: true,
+    };
+  } else {
+    return {
+      ok: false,
+      error: "프로필 수정 불가능",
+    };
+  }
+};
+
+const resolvers: Resolvers = {
+  Mutation: {
+    editProfile: protectedResolver(resolverFn),
+  },
+};
+
+export default resolvers;
