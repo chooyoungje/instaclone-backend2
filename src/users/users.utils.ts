@@ -1,5 +1,5 @@
 import client from "../client";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { Resolver } from "../types";
 
 // await를 사용했을 떄 내가 모르는 에러가 날 수도 있으니 try catch를 쓰자
@@ -9,19 +9,16 @@ export const getUser = async (token) => {
     if (!token) {
       return null;
     }
-    console.log("토큰 유뮤 확인 후 : " + token);
-    console.log("process.env.SECRET_KEY : " + process.env.SECRET_KEY);
+    console.log("verifiedToken 실행 전");
     const verifiedToken: any = jwt.verify(token, process.env.SECRET_KEY);
-    console.log(verifiedToken, verifiedToken.id);
+
+    console.log("verifiedToken 후" + verifiedToken);
     if ("id" in verifiedToken) {
       const user = await client.user.findUnique({ where: { id: verifiedToken["id"] } });
-      console.log(verifiedToken, verifiedToken.id);
-      console.log(user);
       if (user) {
         return user;
       }
     }
-    console.log(verifiedToken, verifiedToken.id);
     return null;
   } catch {
     return null;

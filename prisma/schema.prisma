@@ -21,4 +21,6 @@ model User {
   avatar    String?
   createAt  DateTime @default(now())
   updateAt  DateTime @updatedAt
+  followers User[]   @relation("FollowRelation")
+  following User[]   @relation("FollowRelation")
 }

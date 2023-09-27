@@ -1,9 +1,8 @@
 // 왜 import가 돼지 않는 거지??
 const bcrypt = require("bcrypt");
 
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { Resolvers } from "../../types";
-
 const resolvers: Resolvers = {
   Mutation: {
     login: async (_, { username, password }, { client }) => {
