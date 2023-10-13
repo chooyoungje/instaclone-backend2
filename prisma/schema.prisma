@@ -11,16 +11,92 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   firstName String
   lastName  String?
-  username  String   @unique
-  email     String   @unique
+  username  String    @unique
+  email     String    @unique
   password  String
   bio       String?
   avatar    String?
-  createAt  DateTime @default(now())
-  updateAt  DateTime @updatedAt
-  followers User[]   @relation("FollowRelation")
-  following User[]   @relation("FollowRelation")
+  createAt  DateTime  @default(now())
+  updateAt  DateTime  @updatedAt
+  followers User[]    @relation("FollowRelation")
+  following User[]    @relation("FollowRelation")
+  photos    Photo[]
+  likes     Like[]
+  comments  Comment[]
+  rooms     Room[]
+  message   Message[]
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  file      String
+  caption   String?
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int // 실제로 DB에 저장되는 부분
+
+  hashtags Hashtag[]
+  likes    Like[]
+  comments Comment[]
+}
+
+// 인스타 그램에서 사진 캡션에 i like this #food, is #fantastic 이라고 작성할 경우
+// #food #fantastic 이라는 해쉬태그를 검색했을 때 내 사진도 뜬다
+
+model Hashtag {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hashtag   String   @unique
+  photos    Photo[]
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+  photoId   Int
+  userId    Int
+
+  //compound unique
+  @@unique([photoId, userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  payload String
+  photoId Int
+  userId  Int
+}
+
+model Room {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  users     User[]
+  messages  Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payload   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    Int
+  read      Boolean  @default(false)
 }

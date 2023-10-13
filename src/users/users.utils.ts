@@ -27,10 +27,15 @@ export const getUser = async (token) => {
 export const protectedResolver = (ourResolver: Resolver) => (root, args, context, info) => {
   console.log("context.loggedInUser : " + context.loggedInUser);
   if (!context.loggedInUser) {
-    return {
-      ok: false,
-      error: "로그인 먼저하세요",
-    };
+    const query = info.operation.operation === "query";
+    if (query) {
+      return null;
+    } else {
+      return {
+        ok: false,
+        error: "로그인 먼저하세요",
+      };
+    }
   }
   return ourResolver(root, args, context, info);
 };
