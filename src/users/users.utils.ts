@@ -9,10 +9,8 @@ export const getUser = async (token) => {
     if (!token) {
       return null;
     }
-    console.log("verifiedToken 실행 전");
     const verifiedToken: any = jwt.verify(token, process.env.SECRET_KEY);
 
-    console.log("verifiedToken 후" + verifiedToken);
     if ("id" in verifiedToken) {
       const user = await client.user.findUnique({ where: { id: verifiedToken["id"] } });
       if (user) {

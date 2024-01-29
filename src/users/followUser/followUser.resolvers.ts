@@ -28,6 +28,5 @@ export default {
         ok: true,
       };
     }),
-    unFollowUser: protectedResolver(async () => {}),
   },
 };

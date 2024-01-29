@@ -1,15 +1,18 @@
-import { createWriteStream } from "fs";
 import bcrypt from "bcrypt";
 import { protectedResolver } from "../users.utils";
 import { Resolvers } from "../../types";
-import { uploadPhoto } from "../../shared/shared.utils";
+import { uploadToS3 } from "../../shared/shared.utils";
 
-const resolverFn = async (_, { firstName, lastName, username, email, password: newPassword, bio, avatar }, { loggedInUser, client }) => {
+const resolverFn = async (
+  _,
+  { firstName, lastName, username, email, password: newPassword, bio, avatar },
+  { loggedInUser, client }
+) => {
   console.log("로그인 유저" + loggedInUser, avatar);
   let avatarUrl = null;
   if (avatar) {
-    // 파일 이름을 loggedInUser.id 기반으로 만들어야 하기 떄문에 
-    avatarUrl = await uploadPhoto(avatar, loggedInUser.id)
+    // 파일 이름을 loggedInUser.id 기반으로 만들어야 하기 떄문에
+    avatarUrl = await uploadToS3(avatar, loggedInUser.id, "avatars");
     // const { filename, createReadStream } = await avatar;
     // // 파일에 고유한 이름 부여해주기 (같은 이름의 파일이 들어왔을 때 충돌 방지용)
     // const newFilename = `${loggedInUser.id}-${Date.now()}-${filename}`;
@@ -51,7 +54,8 @@ const resolverFn = async (_, { firstName, lastName, username, email, password: n
   }
 };
 
-const resolvers: Resolvers = {
+const resolvers = {
+  Upload: require("graphql-upload-ts").GraphQLUpload,
   Mutation: {
     editProfile: protectedResolver(resolverFn),
   },

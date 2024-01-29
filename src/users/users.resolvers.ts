@@ -2,8 +2,8 @@ import client from "../client";
 
 export default {
   User: {
-    totalFollowing: ({ id }) => client.user.count({ where: { followers: { some: { id } } } }),
-    totalFollowers: ({ id }) => client.user.count({ where: { following: { some: { id } } } }),
+    totalFollowing: async ({ id }) => await client.user.count({ where: { followers: { some: { id } } } }),
+    totalFollowers: async ({ id }) => await client.user.count({ where: { following: { some: { id } } } }),
     isMe: ({ id }, _, { loggedInUser }) => {
       if (!loggedInUser) {
         return false;
@@ -29,6 +29,6 @@ export default {
       });
       return Boolean(exists2);
     },
-    photos: ({ id }) => client.user.findUnique({ where: id }).photos(),
+    photos: ({ id }) => client.user.findUnique({ where: { id } }).photos(),
   },
 };

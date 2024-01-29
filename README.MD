@@ -107,3 +107,51 @@ GraphQL을 테스트하기 위해 Apollo client를 사용하니
 npm install graphql-upload-ts graphql
 
 upload를 추가하니까 서버가 돌아가지 않는다
+
+참고 : https://github.com/meabed/graphql-upload-ts
+graphql-upload-ts 로 진행하는 게 맞고  
+Upload: require("graphql-upload-ts").GraphQLUpload,를
+Mutation 아래에 추가해주기
+그러면 서버는 잘 돌아감 근데 파일을 업로드 할려고 하니 무한 버퍼가 걸림
+
+콘솔 로그 곳곳에 넣고 다시 실행
+hashtag 추출하는 곳에서 막혀서 무한 버거가 걸리는 거였음
+해시태그가 있을 경우와 없을 경우를 if로 나눠서 해결
+AWS에 가기 전에 막혀서 뭔지 보니 The bucket does not allow ACLs 에러가 뜸
+
+AWS S3에 가서 ACL 활성화 해주기
+
+## 헤더도 이상하고 홈 화면에 사진이 나오질 않는다
+
+Cannot query field \"likes\" on type \"Photo\". Did you mean \"file\" or \"isLiked\"?",
+
+타입이 안 맞는 것 같은데??
+프론트에선 likes라고 gql로 요청하라고 했고
+백엔드에서는 likeNumber로 되어 있어 filed 이름이 맞이 않았던 것
+
+## 사진에 있는 하트를 눌렀는데 좋아요 기능이 작동하지 않는다
+
+Home에서 seeFeed로 불러올 떄 isLiked를 넣어주지 않아서 실행되지 않았음
+
+<PhotoAction onClick={() => toggleLikeMutation()}>
+이렇게 써줘야 함수가 실행이 됨
+
+## gql에 Fragment를 써서 실행을 하니
+
+photos {
+        ...PhotoFragment
+      }
+
+# 일단 이 쿼리문은 잘 실행이 되는 것 같다
+
+"Field \"photos\" of type \"[Photo]\" must have a selection of subfields. Did you mean \"photos { ... }\"?",
+
+이런 에러가 뜨면서 실행이 되지 않는다
+
+users.typeDefs.ts
+users.resolvers.ts
+seeProfile.ts
+schema.prisma
+Profile.   => photo 쿼리문이 2개였고, 거기에서 서브필드를 지정하지 않아서 생기는 오류였다
+
+

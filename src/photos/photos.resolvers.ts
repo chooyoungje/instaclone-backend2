@@ -5,13 +5,44 @@ export default {
     user: ({ userId }) => client.user.findUnique({ where: { id: userId } }),
     // 해쉬태그를 찾늗데 phtos의 해쉬태그들 내에서 찾는 거임
     hashtags: ({ id }) => client.hashtag.findMany({ where: { photos: { some: { id } } } }),
-    likeNumber: ({ photoId }) => client.like.count({ where: { photoId } }),
-    comments: ({ id }) => client.comment.count({ where: { photoId: id } }),
+    likes: ({ photoId }) => client.like.count({ where: { photoId } }),
+    commentNumber: ({ id }) => client.comment.count({ where: { photoId: id } }),
+    comments: ({ id }) =>
+      client.comment.findMany({
+        where: { photoId: id },
+        include: {
+          user: true,
+        },
+      }),
     isMine: async ({ userId }, _, { loggedInUser }) => {
       if (!loggedInUser) {
         return false;
       }
       return userId === loggedInUser.id;
+    },
+    isLiked: async ({ id }, _, { loggedInUser }) => {
+      // 로그인하지 않은 유저는 좋아요를 못 누름
+      if (!loggedInUser) {
+        return false;
+      }
+      // 유저에 의해 눌러진 좋아요를 찾기
+      const ok = await client.like.findUnique({
+        where: {
+          photoId_userId: {
+            photoId: id,
+            userId: loggedInUser.id,
+          },
+        },
+        select: {
+          id: true, // id만 가져오기, 존재 유무만 판단하면 되기 때문
+        },
+      });
+      console.log(ok);
+      if (ok) {
+        return true;
+      } else {
+        return false;
+      }
     },
   },
   Hashtag: {

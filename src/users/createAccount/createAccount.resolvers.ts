@@ -17,7 +17,7 @@ const resolvers: Resolvers = {
         //비밀번호 해싱하기
         const hashedPassword = await bcrypt.hash(password, 13);
         console.log(hashedPassword);
-        return client.user.create({
+        await client.user.create({
           data: {
             firstName,
             lastName,
@@ -26,6 +26,10 @@ const resolvers: Resolvers = {
             password: hashedPassword,
           },
         });
+        return {
+          ok: true,
+          error: null,
+        };
       } catch (err) {
         return err;
       }
