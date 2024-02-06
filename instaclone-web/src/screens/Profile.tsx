@@ -1,4 +1,4 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
 import { PHOTO_FRAGMENT } from "../fragment";
 import { styled } from "styled-components";
@@ -141,13 +141,40 @@ function Profile() {
       username,
     },
   });
+  const client = useApolloClient();
 
+  //현재 로그인된 유저 정보 가져오기
+  const { data: userData } = useUser();
+  const loggedInUsername = userData.me.username;
   const UnfollowUserUpdate = (cache: any, result: any) => {
     const {
       data: {
         unFollowUser: { ok },
       },
     } = result;
+    if (!ok) {
+      return;
+    }
+    cache.modify({
+      id: `User:${username}`,
+      fields: {
+        isFollowing(prev: any) {
+          return false;
+        },
+        totalFollowers(prev: any) {
+          return prev - 1;
+        },
+      },
+    });
+
+    cache.modify({
+      id: `User:${loggedInUsername}`,
+      fields: {
+        totalFollowing(prev: any) {
+          return prev - 1;
+        },
+      },
+    });
   };
   const [UnfollowUser] = useMutation(UNFOLLOW_USER_MUTATION, {
     variables: {
@@ -160,6 +187,29 @@ function Profile() {
     const {
       followUser: { ok },
     } = data;
+    if (!ok) {
+      return;
+    }
+    const { cache } = client;
+    cache.modify({
+      id: `User:${username}`,
+      fields: {
+        isFollowing(prev: any) {
+          return true;
+        },
+        totalFollowers(prev) {
+          return prev + 1;
+        },
+      },
+    });
+    cache.modify({
+      id: `User:${loggedInUsername}`,
+      fields: {
+        totalFollowing(prev: any) {
+          return prev + 1;
+        },
+      },
+    });
   };
   const [followUser] = useMutation(FOLLOW_USER_MUTATION, {
     variables: {
